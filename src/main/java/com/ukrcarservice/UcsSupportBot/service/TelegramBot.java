@@ -2,10 +2,12 @@ package com.ukrcarservice.UcsSupportBot.service;
 
 import com.ukrcarservice.UcsSupportBot.config.BotConfig;
 import com.ukrcarservice.UcsSupportBot.entity.User;
+import com.ukrcarservice.UcsSupportBot.repository.MessageRepository;
 import com.ukrcarservice.UcsSupportBot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -41,6 +43,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MessageRepository messageRepository;
     private final BotConfig config;
 
     public TelegramBot(BotConfig config) {
@@ -208,5 +212,16 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error(SOMETHING_WENT_WRONG + e.getMessage());
         }
+    }
+
+    @Scheduled(cron = "${cron.scheduler}")
+    private void sendMessage() {
+        var messages = messageRepository.findAll();
+        var users = userRepository.findAll();
+        messages.forEach(message -> {
+            for (User user : users) {
+                prepareAndSendMessage(user.getChatId(), message.getMessage());
+            }
+        });
     }
 }
