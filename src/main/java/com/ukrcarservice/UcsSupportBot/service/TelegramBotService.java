@@ -175,15 +175,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboardRows = new ArrayList<>();
         KeyboardRow row1 = new KeyboardRow();
-        row1.add("Register");
-        row1.add("Show my data");
+        row1.add("Задати питання, повідомити про проблему");
+//        row1.add("Show my data");
         keyboardRows.add(row1);
 
-        KeyboardRow row2 = new KeyboardRow();
-        row2.add("One");
-        row2.add("Two");
-        row2.add("Three");
-        keyboardRows.add(row2);
+//        KeyboardRow row2 = new KeyboardRow();
+//        row2.add("One");
+//        row2.add("Two");
+//        row2.add("Three");
+//        keyboardRows.add(row2);
 
         keyboardMarkup.setKeyboard(keyboardRows);
         message.setReplyMarkup(keyboardMarkup);
@@ -195,6 +195,37 @@ public class TelegramBotService extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(textToSend);
+        // Создаем Inline кнопки для списка элементов
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline2 = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline3 = new ArrayList<>();
+
+        // Добавляем элементы списка
+        InlineKeyboardButton btn1 = new InlineKeyboardButton();
+        btn1.setText("Элемент 1");
+        btn1.setCallbackData("element1");
+        rowInline1.add(btn1);
+
+        InlineKeyboardButton btn2 = new InlineKeyboardButton();
+        btn2.setText("Элемент 2");
+        btn2.setCallbackData("element2");
+        rowInline2.add(btn2);
+
+        InlineKeyboardButton btn3 = new InlineKeyboardButton();
+        btn3.setText("Элемент 3");
+        btn3.setCallbackData("element3");
+        rowInline3.add(btn3);
+
+        rowsInline.add(0, rowInline1);
+        rowsInline.add(1, rowInline2);
+        rowsInline.add(2, rowInline3);
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+
+// Отправляем сообщение с Inline кнопками
+        message.setReplyMarkup(inlineKeyboardMarkup);
         executeMessage(message);
     }
 
