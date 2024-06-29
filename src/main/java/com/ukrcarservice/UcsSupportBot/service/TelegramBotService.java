@@ -5,7 +5,7 @@ import com.ukrcarservice.UcsSupportBot.entity.User;
 import com.ukrcarservice.UcsSupportBot.repository.MessageRepository;
 import com.ukrcarservice.UcsSupportBot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -28,9 +28,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
+@Log4j2
 @Component
-public class TelegramBot extends TelegramLongPollingBot {
+public class TelegramBotService extends TelegramLongPollingBot {
     public static final String YES_BUTTON = "YES_BUTTON";
     public static final String NO_BUTTON = "NO_BUTTON";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong: ";
@@ -47,7 +47,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private MessageRepository messageRepository;
     private final BotConfig config;
 
-    public TelegramBot(BotConfig config) {
+    public TelegramBotService(BotConfig config) {
         this.config = config;
         List<BotCommand> commands = new ArrayList<>();
         commands.add(new BotCommand("/start", "welcome message"));
@@ -77,10 +77,15 @@ public class TelegramBot extends TelegramLongPollingBot {
             String message = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
-            if (message.contains(COMMAND_SEND) && config.getOwnerId() == chatId) {
-                String textToSend = message.substring(message.indexOf(" "));
+            if (message.contains(COMMAND_SEND) /*&& config.getOwnerId() == chatId*/) {
+                int index = message.indexOf(" ");
+                String textToSend = message.substring(index < 0 ? 0 : index);
                 Iterable<User> users = userRepository.findAll();
-                users.forEach(u -> prepareAndSendMessage(chatId, textToSend));
+                users.forEach(u -> {
+                    if(u.getChatId().longValue() == chatId){
+                        prepareAndSendMessage(chatId, textToSend);
+                    }
+                });
             } else {
                 switch (message) {
                     case COMMAND_START:
@@ -216,6 +221,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Scheduled(cron = "${cron.scheduler}")
     private void sendMessage() {
+        log.info("Вычитываем сообщения");
         var messages = messageRepository.findAll();
         var users = userRepository.findAll();
         messages.forEach(message -> {

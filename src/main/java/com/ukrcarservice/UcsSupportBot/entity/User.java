@@ -2,6 +2,7 @@ package com.ukrcarservice.UcsSupportBot.entity;
 
 import lombok.*;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -13,13 +14,18 @@ import java.sql.Timestamp;
 @ToString
 @Builder
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "telegram")
 public class User {
     @Id
+    @Column(name = "chat_id")
     private Long chatId;
+    @Column(name = "first_name")
     private String firstName;
+    @Column(name = "last_name")
     private String lastName;
+    @Column(name = "username")
     private String userName;
+    @Column(name = "registered_at")
     private Timestamp registeredAt;
 
     @Override

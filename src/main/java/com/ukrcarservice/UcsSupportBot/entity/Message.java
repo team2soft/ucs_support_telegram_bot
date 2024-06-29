@@ -1,5 +1,6 @@
 package com.ukrcarservice.UcsSupportBot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
@@ -10,11 +11,14 @@ import javax.persistence.*;
 @ToString
 @Builder
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", schema = "telegram")
+@JsonIgnoreProperties
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "chat_id", updatable = false, nullable = false)
     private Long chatId;
+    @Column(name = "message")
     private String message;
 
     @Override
