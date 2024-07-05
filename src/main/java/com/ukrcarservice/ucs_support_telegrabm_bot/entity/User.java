@@ -1,11 +1,8 @@
-package com.ukrcarservice.UcsSupportBot.entity;
+package com.ukrcarservice.ucs_support_telegrabm_bot.entity;
 
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Data
@@ -25,8 +22,20 @@ public class User {
     private String lastName;
     @Column(name = "username")
     private String userName;
+    @Column(name = "email_usc")
+    private String emailUsc;
+    @Column(name = "phone_usc")
+    private String phoneUsc;
+    @Column(name = "employee_id")
+    private Integer employeeId;
     @Column(name = "registered_at")
     private Timestamp registeredAt;
+
+    // ссылка на объект Employee
+    @ManyToOne
+    @JoinColumn(name = "employee_id", referencedColumnName = "employee_id", insertable = false, updatable = false) // по каким полям связывать (foreign key)
+    private Employee employee;
+
 
     @Override
     public boolean equals(Object o) {

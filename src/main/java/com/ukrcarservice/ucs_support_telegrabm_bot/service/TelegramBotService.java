@@ -1,15 +1,16 @@
-package com.ukrcarservice.UcsSupportBot.service;
+package com.ukrcarservice.ucs_support_telegrabm_bot.service;
 
-import com.ukrcarservice.UcsSupportBot.config.BotConfig;
-import com.ukrcarservice.UcsSupportBot.entity.FeedbackTheme;
-import com.ukrcarservice.UcsSupportBot.entity.User;
-import com.ukrcarservice.UcsSupportBot.repository.UserRepository;
+import com.ukrcarservice.ucs_support_telegrabm_bot.config.BotConfig;
+import com.ukrcarservice.ucs_support_telegrabm_bot.entity.FeedbackTheme;
+import com.ukrcarservice.ucs_support_telegrabm_bot.entity.MessageUcs;
+import com.ukrcarservice.ucs_support_telegrabm_bot.entity.User;
+import com.ukrcarservice.ucs_support_telegrabm_bot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -26,14 +27,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Log4j2
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
+
+    @Value("${employees.support}")
+    List<Integer> employeesSupport;
+    @Value("${employees.call-center}")
+    List<Integer> employeesCallCenter;
 //    public static final String YES_BUTTON = "YES_BUTTON";
 //    public static final String NO_BUTTON = "NO_BUTTON";
 //    public static final String YES = "Yes";
@@ -58,9 +61,10 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private final BotConfig config;
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private FeedbackThemeService feedbackThemeService;
+    @Autowired
+    private MessageUcsService messageService;
 
     public TelegramBotService(BotConfig config) {
         this.config = config;
@@ -69,7 +73,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
 //        commands.add(new BotCommand("/help", BTN_TEXT_HELP));
 //        commands.add(new BotCommand("/settings", BTN_TEXT_SETTINGS));
         commands.add(new BotCommand(COMMAND_FEEDBACK, BTN_TEXT_FEEDBACK));
-        commands.add(new BotCommand(COMMAND_OPEN_CHAT, BTN_TEXT_OPEN_CHAT));
+//        commands.add(new BotCommand(COMMAND_OPEN_CHAT, BTN_TEXT_OPEN_CHAT));
 
         try {
             this.execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
@@ -121,45 +125,71 @@ public class TelegramBotService extends TelegramLongPollingBot {
                         prepareAndSendMessageFeedback(chatId, "Виберіть тему звернення", language.toLowerCase());
                         break;
                     default:
-//                        prepareAndSendMessage(chatId, "Command is not supported.");
-//                            sendMessage(chatId, "Command is not supported.");
-                        if(openedChats.contains(chatId)){
-                            if(true) {
-                                break;
-                            }
-                            SendMessage message1 = new SendMessage();
-                            message1.setChatId(String.valueOf(chatId));
-                            message1.setText("Дякуємо за звернення. Підключаємо оператора.");
+                        MessageUcs messageUcs = messageService.findFirstByChatIdOrderByMessageIdDesc(chatId);
+                        if (messageUcs.getFeedbackThemeId() != null && messageUcs.getText() == null) {
+                            // есть подготовленное сообщение на тему фидбека без текста пользователя
+                            // значит мы получили вопрос на эту тему
+                            // - обновить сообщение
+                            // - отправить email стандартный по фидбеку
+                            // - ответить, что мы приняли вопрос и специалисты уже над ним работают
+                            //   если в вопросе подразумевается ответ, то мы ответим максимально быстро
+                            messageUcs.setText(message);
+                            messageService.save(messageUcs);
 
-                            ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                            // делает кнопку/рядок узким в одну строку
-                            keyboardMarkup.setResizeKeyboard(true);
+                        } else {
+                            // нет подготовленных сообщение на тему фидбека без текста пользователя
+                            // значит от пользователя пришел простой вопрос
+                            // - отправить всем менеджерам, кто отвечает за телеграм (support - QA)
+                            //   о том, что есть вопрос от какого-то юзера и надо тветить
+                            // - ?? шаблонно ответить -
+                            // - ?? если нерабочее время, то ответить
+                            //   ?? Дякуємо за звернення, передаю інформацію нашому експерту, він зв'яжеться з Вами у робочий час нашого центру обслуговування клієнтів: 09:00 – 18:00 :)
+                            MessageUcs messageUcsNew = new MessageUcs();
+                            messageUcsNew.setChatId(chatId);
+                            messageUcsNew.setText(message);
+                            messageUcsNew.setUserIdFrom(chatId);
+                            messageUcsNew.setUserIdTo(config.getBotId());
+                            messageService.save(messageUcsNew);
 
-                            keyboardMarkup.setIsPersistent(true);
-                            // прячет кнопку/рядок после его нажатия
-                            // иначе прячется только вручную
-                            // true - отображается всегда
-                            keyboardMarkup.setOneTimeKeyboard(true);
-                            //        keyboardMarkup.setSelective(false);
-
-                            List<KeyboardRow> keyboardRows = new ArrayList<>();
-                            KeyboardRow row1 = new KeyboardRow();
-                            KeyboardButton inlineKeyboardButton = new KeyboardButton();
-                            inlineKeyboardButton.setText(BTN_TEXT_CLOSE_CHAT);
-                            row1.add(inlineKeyboardButton);
-                            keyboardRows.add(row1);
-
-                            keyboardMarkup.setKeyboard(keyboardRows);
-
-                            message1.setReplyMarkup(keyboardMarkup);
-
-
-                            try {
-                                execute(message1);
-                            } catch (TelegramApiException e) {
-                                log.error(SOMETHING_WENT_WRONG + e.getMessage());
-                            }
                         }
+//                        prepareAndSendMessage(chatId, "Command is not supported.");
+//                        sendMessage(chatId, "Command is not supported.");
+//                        if(openedChats.contains(chatId)){
+//                            if(true) {
+//                                break;
+//                            }
+//                            SendMessage message1 = new SendMessage();
+//                            message1.setChatId(String.valueOf(chatId));
+//                            message1.setText("Дякуємо за звернення. Підключаємо оператора.");
+//
+//                            ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+//                            // делает кнопку/рядок узким в одну строку
+//                            keyboardMarkup.setResizeKeyboard(true);
+//
+//                            keyboardMarkup.setIsPersistent(true);
+//                            // прячет кнопку/рядок после его нажатия
+//                            // иначе прячется только вручную
+//                            // true - отображается всегда
+//                            keyboardMarkup.setOneTimeKeyboard(true);
+//                            //        keyboardMarkup.setSelective(false);
+//
+//                            List<KeyboardRow> keyboardRows = new ArrayList<>();
+//                            KeyboardRow row1 = new KeyboardRow();
+//                            KeyboardButton inlineKeyboardButton = new KeyboardButton();
+//                            inlineKeyboardButton.setText(BTN_TEXT_CLOSE_CHAT);
+//                            row1.add(inlineKeyboardButton);
+//                            keyboardRows.add(row1);
+//
+//                            keyboardMarkup.setKeyboard(keyboardRows);
+//
+//                            message1.setReplyMarkup(keyboardMarkup);
+//
+//                            try {
+//                                execute(message1);
+//                            } catch (TelegramApiException e) {
+//                                log.error(SOMETHING_WENT_WRONG + e.getMessage());
+//                            }
+//                        }
                 }
             }
         } else if (update.hasCallbackQuery()) {
@@ -173,17 +203,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
 //                return; // Игнорируем сообщения от пользователя
 //            }
             if (callbackData.startsWith("feedbackThemeId")) {
-//                String text = "Pressed  ⬇️ " + callbackData;
-
-//                sendMessage(chatId, text);
-//                executeEditMessageText(text, chatId, messageId);
-//                Long userId = update.getCallbackQuery().getMessage().getFrom().getId();
-//                Long userId = update.getCallbackQuery().getMessage().getChat().getId();
-//                startNewChatWithUser(String.valueOf(userId), TEXT_OPEN_CHAT);
                 String[] callbackDataArr = callbackData.split("=");
                 Integer feedbackThemeId = Integer.valueOf(callbackDataArr[1]);
-                FeedbackTheme feedbackTheme = feedbackThemeService.getFeedbackThemeByThemeIdAndLocale(feedbackThemeId, callbackDataArr[2]);
+                String lang = callbackDataArr[2];
+                FeedbackTheme feedbackTheme = feedbackThemeService.getFeedbackThemeByThemeIdAndLocale(feedbackThemeId, lang);
                 sendMessage(chatId,  EmojiParser.parseToUnicode(String.format("%s\n%s", feedbackTheme.getFeedbackTheme(), " :arrow_down:")));
+                MessageUcs messageUcs = new MessageUcs();
+                messageUcs.setChatId(chatId);
+                messageUcs.setFeedbackThemeId(feedbackThemeId);
+                messageUcs.setLang(lang);
+                messageUcs.setUserIdFrom(chatId);
+                messageUcs.setUserIdTo(update.getCallbackQuery().getMessage().getFrom().getId());
+                messageService.save(messageUcs);
             }
         }
     }
@@ -328,6 +359,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
         // Отправляем сообщение с Inline кнопками
         message.setReplyMarkup(inlineKeyboardMarkup);
 
+        MessageUcs messageUcs = new MessageUcs();
+        messageUcs.setChatId(chatId);
+        messageUcs.setUserIdFrom(config.getBotId());
+        messageUcs.setUserIdTo(chatId);
+        messageUcs.setLang(language);
+        messageUcs.setText(message.getText());
+//        messageUcs.setCreateDttm(new Date());
+        messageService.save(messageUcs);
+
         executeMessage(message);
     }
 
@@ -414,6 +454,13 @@ public class TelegramBotService extends TelegramLongPollingBot {
 
         message.setReplyMarkup(keyboardMarkup);
 
+        MessageUcs messageUcs = new MessageUcs();
+        messageUcs.setChatId(chatId);
+        messageUcs.setText(message.getText());
+        messageUcs.setUserIdFrom(config.getBotId());
+        messageUcs.setUserIdTo(chatId);
+        messageService.save(messageUcs);
+
         executeMessage(message);
     }
 
@@ -423,7 +470,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
      * @param message
      */
     private void registerUser(Message message) {
-        log.info("registerUser(Message message) : message={}", message);
+        log.info("registerUser(MessageUcs message) : message={}", message);
         if (userRepository.findById(message.getChatId()).isEmpty()) {
             Long chatId = message.getChatId();
             Chat chat = message.getChat();
@@ -437,7 +484,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                             .registeredAt(new Timestamp(System.currentTimeMillis()))
                             .build()
             );
-            log.info("registerUser(Message message) : User saved: {}", saved);
+            log.info("registerUser(MessageUcs message) : User saved: {}", saved);
         }
     }
 

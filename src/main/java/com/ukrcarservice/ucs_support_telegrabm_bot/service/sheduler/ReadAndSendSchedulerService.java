@@ -1,12 +1,11 @@
-package com.ukrcarservice.UcsSupportBot.service.sheduler;
+package com.ukrcarservice.ucs_support_telegrabm_bot.service.sheduler;
 
-import com.ukrcarservice.UcsSupportBot.entity.User;
-import com.ukrcarservice.UcsSupportBot.repository.MessageRepository;
-import com.ukrcarservice.UcsSupportBot.repository.UserRepository;
-import com.ukrcarservice.UcsSupportBot.service.TelegramBotService;
+import com.ukrcarservice.ucs_support_telegrabm_bot.entity.User;
+import com.ukrcarservice.ucs_support_telegrabm_bot.repository.MessageUcsRepository;
+import com.ukrcarservice.ucs_support_telegrabm_bot.repository.UserRepository;
+import com.ukrcarservice.ucs_support_telegrabm_bot.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -15,18 +14,18 @@ import org.springframework.stereotype.Service;
 public class ReadAndSendSchedulerService {
 
     private final UserRepository userRepository;
-    private final MessageRepository messageRepository;
+    private final MessageUcsRepository messageUcsRepository;
     private final TelegramBotService telegramBotService;
 
 //    @Scheduled(cron = "${cron.read-and-send}")
     private void sendMessage() {
         log.info("Вычитываем сообщения");
-        var messages = messageRepository.findAll();
+        var messages = messageUcsRepository.findAll();
         var users = userRepository.findAll();
         messages.forEach(message -> {
             for (User user : users) {
 //                telegramBotService.prepareAndSendMessage(user.getChatId(), message.getMessage());
-                telegramBotService.sendMessage(user.getChatId(), message.getMessage());
+                telegramBotService.sendMessage(user.getChatId(), message.getText());
             }
         });
     }

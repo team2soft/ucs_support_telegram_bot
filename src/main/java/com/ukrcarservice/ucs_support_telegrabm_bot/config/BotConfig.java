@@ -1,9 +1,8 @@
-package com.ukrcarservice.UcsSupportBot.config;
+package com.ukrcarservice.ucs_support_telegrabm_bot.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
@@ -16,6 +15,9 @@ public class BotConfig {
 
     @Value("${bot.token}")
     String token;
+
+    @Value("${bot.id}")
+    Long botId;
 
 //    @Value("${bot.owner}")
 //    Long ownerId;
