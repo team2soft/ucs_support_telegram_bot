@@ -1,6 +1,7 @@
 package com.ukrcarservice.UcsSupportBot.service;
 
 import com.ukrcarservice.UcsSupportBot.config.BotConfig;
+import com.ukrcarservice.UcsSupportBot.entity.FeedbackTheme;
 import com.ukrcarservice.UcsSupportBot.entity.User;
 import com.ukrcarservice.UcsSupportBot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
@@ -8,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -79,11 +81,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         log.info("onUpdateReceived(update)  : update={}", update);
+        String language = "ua";
         if (update.hasMessage() && update.getMessage().hasText()) {
             String message = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
+            if(update.getMessage().getFrom() != null && update.getMessage().getFrom().getLanguageCode() != null ){
+                language = update.getMessage().getFrom().getLanguageCode();
+            }
             if (update.getMessage().getText().equals(BTN_TEXT_FEEDBACK)) {
-                prepareAndSendMessageFeedback(chatId, "Виберіть тему звернення");
+                prepareAndSendMessageFeedback(chatId, "Виберіть тему звернення", language.toLowerCase());
             } else if (update.getMessage().getText().equals(BTN_TEXT_CLOSE_CHAT)) {
                 Long userId = update.getMessage().getChat().getId();
                 closeChatWithUser(String.valueOf(userId));
@@ -112,12 +118,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
 //                        sendMessage(chatId, "This is UCS support telegram bot.");
 //                        break;
                     case COMMAND_FEEDBACK:
-                        prepareAndSendMessageFeedback(chatId, "Виберіть тему звернення");
+                        prepareAndSendMessageFeedback(chatId, "Виберіть тему звернення", language.toLowerCase());
                         break;
                     default:
 //                        prepareAndSendMessage(chatId, "Command is not supported.");
 //                            sendMessage(chatId, "Command is not supported.");
                         if(openedChats.contains(chatId)){
+                            if(true) {
+                                break;
+                            }
                             SendMessage message1 = new SendMessage();
                             message1.setChatId(String.valueOf(chatId));
                             message1.setText("Дякуємо за звернення. Підключаємо оператора.");
@@ -163,21 +172,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
 //            if (closedChats.contains(senderId)) {
 //                return; // Игнорируем сообщения от пользователя
 //            }
-            if (callbackData.equals("element1")) {
+            if (callbackData.startsWith("feedbackThemeId")) {
 //                String text = "Pressed  ⬇️ " + callbackData;
 
 //                sendMessage(chatId, text);
 //                executeEditMessageText(text, chatId, messageId);
 //                Long userId = update.getCallbackQuery().getMessage().getFrom().getId();
-                Long userId = update.getCallbackQuery().getMessage().getChat().getId();
-                startNewChatWithUser(String.valueOf(userId), TEXT_OPEN_CHAT);
-            } else if (callbackData.equals("element2")) {
-//                String text = "Pressed " + callbackData;
-//                sendMessage(chatId, text);
-//                Long userId = update.getCallbackQuery().getMessage().getFrom().getId();
-                Long userId = update.getCallbackQuery().getMessage().getChat().getId();
-                closeChatWithUser(String.valueOf(userId));
-//                executeEditMessageText(text, chatId, messageId);
+//                Long userId = update.getCallbackQuery().getMessage().getChat().getId();
+//                startNewChatWithUser(String.valueOf(userId), TEXT_OPEN_CHAT);
+                String[] callbackDataArr = callbackData.split("=");
+                Integer feedbackThemeId = Integer.valueOf(callbackDataArr[1]);
+                FeedbackTheme feedbackTheme = feedbackThemeService.getFeedbackThemeByThemeIdAndLocale(feedbackThemeId, callbackDataArr[2]);
+                sendMessage(chatId,  EmojiParser.parseToUnicode(String.format("%s\n%s", feedbackTheme.getFeedbackTheme(), " :arrow_down:")));
             }
         }
     }
@@ -295,8 +301,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
      * @param chatId
      * @param textToSend
      */
-    public void prepareAndSendMessageFeedback(long chatId, String textToSend) {
-        log.info("prepareAndSendMessageFeedback(long chatId, String textToSend) : chatId={} : textToSend={}", chatId, textToSend);
+    public void prepareAndSendMessageFeedback(long chatId, String textToSend, String language) {
+        log.info("prepareAndSendMessageFeedback(long chatId, String textToSend) : chatId={} : textToSend={} : language={}", chatId, textToSend, language);
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(textToSend);
@@ -305,29 +311,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
-        List<InlineKeyboardButton> rowInline2 = new ArrayList<>();
-        List<InlineKeyboardButton> rowInline3 = new ArrayList<>();
 
-        // Добавляем элементы списка
-        InlineKeyboardButton btn1 = new InlineKeyboardButton();
-        btn1.setText("Элемент 1");
-        btn1.setCallbackData("element1");
-        rowInline1.add(btn1);
+        List<FeedbackTheme> feedbackThemes = feedbackThemeService.getFeedbackThemesByLocale(language);
 
-        InlineKeyboardButton btn2 = new InlineKeyboardButton();
-        btn2.setText("Элемент 2");
-        btn2.setCallbackData("element2");
-        rowInline2.add(btn2);
-
-        InlineKeyboardButton btn3 = new InlineKeyboardButton();
-        btn3.setText("Элемент 3");
-        btn3.setCallbackData("element3");
-        rowInline3.add(btn3);
-
-        rowsInline.add(0, rowInline1);
-        rowsInline.add(1, rowInline2);
-        rowsInline.add(2, rowInline3);
+        for(FeedbackTheme feedbackTheme : feedbackThemes) {
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            // Добавляем элементы списка
+            InlineKeyboardButton btn = new InlineKeyboardButton();
+            btn.setText(feedbackTheme.getFeedbackTheme());
+            btn.setCallbackData("feedbackThemeId=" + feedbackTheme.getThemeId() + "=" + language.trim());
+            rowInline.add(btn);
+            rowsInline.add(0, rowInline);
+        }
         inlineKeyboardMarkup.setKeyboard(rowsInline);
 
         // Отправляем сообщение с Inline кнопками
@@ -367,6 +362,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(textToSend);
+//        message.setParseMode(ParseMode.MARKDOWN);
         executeMessage(message);
     }
 

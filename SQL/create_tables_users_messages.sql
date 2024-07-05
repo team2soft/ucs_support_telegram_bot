@@ -1,7 +1,7 @@
 --***************************************************************
 /*
 drop table telegram.users cascade;
-drop table telegram.spring_session_attributes cascade;
+drop table telegram.messages cascade;
 */
 --***************************************************************
 /*==============================================================*/
@@ -31,13 +31,21 @@ GRANT SELECT ON TABLE telegram.users TO qa_ucs;
 /* Table: telegram.messages                           */
 /*==============================================================*/
 create table telegram.messages (
-   chat_id  bigserial   not null,
-   message  text        null,
+   message_id  bigserial   not null,
+   chat_id  int8      null,
+   feedback_theme_id  int4   null,
+   lang  varchar(2)   null,
+   is_from_user boolean null default false,
+   message  text   null,
    constraint pk_telegram_messages_chat_id primary key (chat_id)
 );
 
 comment on table telegram.messages  is 'Сообщения в telegram';
-comment on column telegram.messages.chat_id is 'ID сообщения (chat_id)';
+comment on column telegram.messages.message_id is 'ID сообщения (message_id)';
+comment on column telegram.messages.chat_id is 'ID пользователя / чата (chat_id)';
+comment on column telegram.messages.feedback_theme_id is 'ID темы фидбека (feedback_theme_id)';
+comment on column telegram.messages.lang is 'Язык пользователя (lang)';
+comment on column telegram.messages.is_from_user is 'Признак входящего от пользователя (is_from_user)';
 comment on column telegram.messages.message is 'Текст сообщения (message)';
 
 ALTER TABLE telegram.messages OWNER TO ukrcarservice;

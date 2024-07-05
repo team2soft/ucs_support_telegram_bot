@@ -16,8 +16,16 @@ import javax.persistence.*;
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "message_id", updatable = false, nullable = false)
+    private Long messageId;
     @Column(name = "chat_id", updatable = false, nullable = false)
     private Long chatId;
+    @Column(name = "feedback_theme_id")
+    private Integer feedbackThemeId;
+    @Column(name = "lang")
+    private String lang;
+    @Column(name = "is_from_user")
+    private Boolean isFromUser;
     @Column(name = "message")
     private String message;
 

@@ -22,7 +22,7 @@ public interface FeedbackThemeRepository extends JpaRepository<FeedbackTheme, In
                    "        else ft.placeholder_ua                        " + // добавьте аналогичные кейсы для других языков
                    "   end as placeholder                                 " +
                    "  from ukrcarservice.feedback_theme_s1 ft             " +
-                   "  order by ft.theme_id asc                            ", nativeQuery = true)
+                   "  order by ft.theme_id desc                            ", nativeQuery = true)
     List<FeedbackTheme> findFeedbackThemesByLocale(@Param("locale") String locale);
 
     @Cacheable(cacheNames="FeedbackThemeByThemeIdAndLocale", key = "#themeId + '_' + #locale")
