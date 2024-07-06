@@ -37,6 +37,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
     List<Integer> employeesSupport;
     @Value("${employees.call-center}")
     List<Integer> employeesCallCenter;
+    @Value("${ucs.support.team.telegram.chat.id}")
+    String ucsSupportTeamTelegramChatId;
 //    public static final String YES_BUTTON = "YES_BUTTON";
 //    public static final String NO_BUTTON = "NO_BUTTON";
 //    public static final String YES = "Yes";
@@ -65,6 +67,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private FeedbackThemeService feedbackThemeService;
     @Autowired
     private MessageUcsService messageService;
+    @Autowired
+    private UserService userService;
 
     public TelegramBotService(BotConfig config) {
         this.config = config;
@@ -110,6 +114,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
             } else {
                 switch (message) {
                     case COMMAND_START:
+                    case "/start@UkrCarServiceSupportBot":
+                    case "/start@TestUkrCarServiceSupportBot":
                         registerUser(update.getMessage());
                         helloNewUser(chatId, update.getMessage().getChat().getFirstName());
                         break;
@@ -126,7 +132,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                         break;
                     default:
                         MessageUcs messageUcs = messageService.findFirstByChatIdOrderByMessageIdDesc(chatId);
-                        if (messageUcs.getFeedbackThemeId() != null && messageUcs.getText() == null) {
+                        if (messageUcs != null && messageUcs.getFeedbackThemeId() != null && messageUcs.getText() == null) {
                             // есть подготовленное сообщение на тему фидбека без текста пользователя
                             // значит мы получили вопрос на эту тему
                             // - обновить сообщение
@@ -135,6 +141,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
                             //   если в вопросе подразумевается ответ, то мы ответим максимально быстро
                             messageUcs.setText(message);
                             messageService.save(messageUcs);
+
+                            this.sendMessageToUcsSupportTeam(language, message, chatId, messageUcs);
 
                         } else {
                             // нет подготовленных сообщение на тему фидбека без текста пользователя
@@ -219,13 +227,54 @@ public class TelegramBotService extends TelegramLongPollingBot {
         }
     }
 
+    private void sendMessageToUcsSupportTeam(String language, String message, long chatId, MessageUcs messageUcs) {
+        StringBuilder text2 = new StringBuilder();
+        text2.append("Пользователь <b>https://t.me/");
+        text2.append(userService.findById(chatId).getUserName());
+        text2.append("</b> написал фидбек \n<i>Тема:</i> \n");
+        text2.append("<b><i>");
+        text2.append(replaceMarkdownText(feedbackThemeService.getFeedbackThemeByThemeIdAndLocale(messageUcs.getFeedbackThemeId(), language).getFeedbackTheme(), "HTML"));
+        text2.append("</i></b> \n<i>Текст:</i> \n");
+        text2.append("<b><i>");
+        text2.append(replaceMarkdownText(message, "HTML"));
+        text2.append("</i></b>");
+        sendMarkdownMessageToUser(ucsSupportTeamTelegramChatId, text2.toString(), "HTML");
+    }
+
+    private String replaceMarkdownText(String income, String markdownType){
+        switch(markdownType.toUpperCase()) {
+            case "HTML":
+//            case "MARKDOWN":
+            default:
+            return income.replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll("\"", "&quot;")
+                    .replaceAll("'", "&#039;")
+                    ;
+        }
+    }
+
     // Метод для отправки сообщения пользователю
     public void sendMessageToUser(String userId, String messageText) {
-        SendMessage message = new SendMessage();
-        message.setChatId(userId);
-        message.setText(messageText);
-
         try {
+            SendMessage message = new SendMessage();
+            message.setChatId(userId);
+            message.setText(messageText);
+
+            execute(message); // Отправка сообщения пользователю
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMarkdownMessageToUser(String userId, String messageText, String markdownType) {
+        try {
+            SendMessage message = new SendMessage();
+            message.setChatId(userId);
+            message.setText(messageText);
+            message.setParseMode(markdownType);
+
             execute(message); // Отправка сообщения пользователю
         } catch (TelegramApiException e) {
             e.printStackTrace();
@@ -427,7 +476,12 @@ public class TelegramBotService extends TelegramLongPollingBot {
      */
     private void helloNewUser(long chatId, String firstName) {
         log.info("helloNewUser(long chatId, String firstName) : chatId={} : firstName={}", chatId, firstName);
-        String answer = EmojiParser.parseToUnicode(String.format("Hello, %s! %s", firstName, " :relaxed:"));
+        String answer = "";
+        if(firstName == null) {
+            answer = EmojiParser.parseToUnicode(String.format("Hello! %s", " :relaxed:"));
+        } else {
+            answer = EmojiParser.parseToUnicode(String.format("Hello, %s! %s", firstName, " :relaxed:"));
+        }
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(answer);
