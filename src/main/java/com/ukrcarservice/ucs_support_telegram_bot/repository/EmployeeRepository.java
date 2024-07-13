@@ -1,6 +1,6 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.repository;
+package com.ukrcarservice.ucs_support_telegram_bot.repository;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.entity.Employee;
+import com.ukrcarservice.ucs_support_telegram_bot.entity.Employee;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 

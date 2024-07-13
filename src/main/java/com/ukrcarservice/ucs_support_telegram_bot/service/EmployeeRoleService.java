@@ -1,7 +1,7 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.service;
+package com.ukrcarservice.ucs_support_telegram_bot.service;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.entity.EmployeeRole;
-import com.ukrcarservice.ucs_support_telegrabm_bot.repository.EmployeeRoleRepository;
+import com.ukrcarservice.ucs_support_telegram_bot.entity.EmployeeRole;
+import com.ukrcarservice.ucs_support_telegram_bot.repository.EmployeeRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.config;
+package com.ukrcarservice.ucs_support_telegram_bot.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

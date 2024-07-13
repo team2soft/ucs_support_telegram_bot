@@ -1,4 +1,4 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.entity;
+package com.ukrcarservice.ucs_support_telegram_bot.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

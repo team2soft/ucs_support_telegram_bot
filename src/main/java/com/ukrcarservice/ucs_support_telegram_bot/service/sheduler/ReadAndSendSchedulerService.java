@@ -1,9 +1,9 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.service.sheduler;
+package com.ukrcarservice.ucs_support_telegram_bot.service.sheduler;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.entity.User;
-import com.ukrcarservice.ucs_support_telegrabm_bot.repository.MessageUcsRepository;
-import com.ukrcarservice.ucs_support_telegrabm_bot.repository.UserRepository;
-import com.ukrcarservice.ucs_support_telegrabm_bot.service.TelegramBotService;
+import com.ukrcarservice.ucs_support_telegram_bot.entity.User;
+import com.ukrcarservice.ucs_support_telegram_bot.repository.MessageUcsRepository;
+import com.ukrcarservice.ucs_support_telegram_bot.repository.UserRepository;
+import com.ukrcarservice.ucs_support_telegram_bot.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;

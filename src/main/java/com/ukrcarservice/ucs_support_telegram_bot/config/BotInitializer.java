@@ -1,6 +1,6 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.config;
+package com.ukrcarservice.ucs_support_telegram_bot.config;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.service.TelegramBotService;
+import com.ukrcarservice.ucs_support_telegram_bot.service.TelegramBotService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;

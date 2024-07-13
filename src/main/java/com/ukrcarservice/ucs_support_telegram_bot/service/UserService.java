@@ -1,7 +1,7 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.service;
+package com.ukrcarservice.ucs_support_telegram_bot.service;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.entity.User;
-import com.ukrcarservice.ucs_support_telegrabm_bot.repository.UserRepository;
+import com.ukrcarservice.ucs_support_telegram_bot.entity.User;
+import com.ukrcarservice.ucs_support_telegram_bot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;

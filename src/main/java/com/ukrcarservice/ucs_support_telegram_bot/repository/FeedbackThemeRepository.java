@@ -1,6 +1,6 @@
-package com.ukrcarservice.ucs_support_telegrabm_bot.repository;
+package com.ukrcarservice.ucs_support_telegram_bot.repository;
 
-import com.ukrcarservice.ucs_support_telegrabm_bot.entity.FeedbackTheme;
+import com.ukrcarservice.ucs_support_telegram_bot.entity.FeedbackTheme;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
