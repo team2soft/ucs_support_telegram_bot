@@ -41,6 +41,9 @@ VALUES(7386948076, 'TestUkrCarService support', 'bot', 'https://t.me/TestUkrCarS
 INSERT INTO telegram.users
 (chat_id, first_name, last_name, username, registered_at, email_usc, phone_usc, employee_id)
 VALUES(6854063767, 'UkrCarService support', 'bot', 'https://t.me/UkrCarServiceSupportBot', now(), NULL, NULL, NULL);
+INSERT INTO telegram.users
+(chat_id, first_name, last_name, username, registered_at, email_usc, phone_usc, employee_id)
+VALUES(7451755109, 'LocalTestUkrCarService support', 'bot', 'https://t.me/LocalTestUkrCarServiceSupportBot', now(), NULL, NULL, NULL);
 /*==============================================================*/
 /* Table: telegram.messages                           */
 /*==============================================================*/
