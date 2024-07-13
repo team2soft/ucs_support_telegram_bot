@@ -6,6 +6,7 @@ import com.ukrcarservice.ucs_support_telegram_bot.repository.UserRepository;
 import com.ukrcarservice.ucs_support_telegram_bot.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -17,7 +18,7 @@ public class ReadAndSendSchedulerService {
     private final MessageUcsRepository messageUcsRepository;
     private final TelegramBotService telegramBotService;
 
-//    @Scheduled(cron = "${cron.read-and-send}")
+    @Scheduled(cron = "${cron.read-and-send}")
     private void sendMessage() {
         log.info("Вычитываем сообщения");
         var messages = messageUcsRepository.findAll();
