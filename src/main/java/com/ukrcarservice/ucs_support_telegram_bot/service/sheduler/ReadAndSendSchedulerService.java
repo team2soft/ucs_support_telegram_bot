@@ -18,7 +18,7 @@ public class ReadAndSendSchedulerService {
     private final MessageUcsRepository messageUcsRepository;
     private final TelegramBotService telegramBotService;
 
-    @Scheduled(cron = "${cron.read-and-send}")
+//    @Scheduled(cron = "${cron.read-and-send}")
     private void sendMessage() {
         log.info("Вычитываем сообщения");
         var messages = messageUcsRepository.findAll();
