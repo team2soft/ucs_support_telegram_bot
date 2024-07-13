@@ -18,16 +18,16 @@ public class ReadAndSendSchedulerService {
     private final MessageUcsRepository messageUcsRepository;
     private final TelegramBotService telegramBotService;
 
-//    @Scheduled(cron = "${cron.read-and-send}")
+    @Scheduled(cron = "${cron.read-and-send}")
     private void sendMessage() {
         log.info("Вычитываем сообщения");
         var messages = messageUcsRepository.findAll();
         var users = userRepository.findAll();
-//        messages.forEach(message -> {
-//            for (User user : users) {
-////                telegramBotService.prepareAndSendMessage(user.getChatId(), message.getMessage());
-//                telegramBotService.sendMessage(user.getChatId(), message.getText());
-//            }
-//        });
+        messages.forEach(message -> {
+            for (User user : users) {
+//                telegramBotService.prepareAndSendMessage(user.getChatId(), message.getMessage());
+                telegramBotService.sendMessage(user.getChatId(), message.getText());
+            }
+        });
     }
 }
