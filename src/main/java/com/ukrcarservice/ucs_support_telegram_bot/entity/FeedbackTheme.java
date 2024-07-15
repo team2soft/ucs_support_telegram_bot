@@ -24,6 +24,8 @@ public class FeedbackTheme {
 
     @Column(name = "placeholder")
     private String placeholder;
+    @Column(name = "tg_response")
+    private String tgResponse;
 
     @Override
     public boolean equals(Object o) {
@@ -46,6 +48,7 @@ public class FeedbackTheme {
                 "themeId=" + themeId +
                 ", feedbackTheme='" + feedbackTheme + '\'' +
                 ", placeholder='" + placeholder + '\'' +
+                ", tgResponse='" + tgResponse + '\'' +
                 '}';
     }
 }

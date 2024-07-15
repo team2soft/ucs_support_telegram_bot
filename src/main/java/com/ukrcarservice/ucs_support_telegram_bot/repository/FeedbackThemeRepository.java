@@ -20,7 +20,11 @@ public interface FeedbackThemeRepository extends JpaRepository<FeedbackTheme, In
                    "   case when :locale = 'ru' then ft.placeholder_ru    " +
                    "        when :locale = 'en' then ft.placeholder_en    " +
                    "        else ft.placeholder_ua                        " + // добавьте аналогичные кейсы для других языков
-                   "   end as placeholder                                 " +
+                   "   end as placeholder,                                " +
+                   "   case when :locale = 'ru' then ft.tg_response_ru    " +
+                   "        when :locale = 'en' then ft.tg_response_en    " +
+                   "        else ft.tg_response_ua                        " + // добавьте аналогичные кейсы для других языков
+                   "   end as tg_response                                 " +
                    "  from ukrcarservice.feedback_theme_s1 ft             " +
                    "  order by ft.theme_id desc                            ", nativeQuery = true)
     List<FeedbackTheme> findFeedbackThemesByLocale(@Param("locale") String locale);
@@ -34,7 +38,11 @@ public interface FeedbackThemeRepository extends JpaRepository<FeedbackTheme, In
                     "   case when :locale = 'ru' then ft.placeholder_ru    " +
                     "        when :locale = 'en' then ft.placeholder_en    " +
                     "        else ft.placeholder_ua                        " + // добавьте аналогичные кейсы для других языков
-                    "   end as placeholder                                 " +
+                    "   end as placeholder,                                " +
+                    "   case when :locale = 'ru' then ft.tg_response_ru    " +
+                    "        when :locale = 'en' then ft.tg_response_en    " +
+                    "        else ft.tg_response_ua                        " + // добавьте аналогичные кейсы для других языков
+                    "   end as tg_response                                 " +
                     "  from ukrcarservice.feedback_theme_s1 ft             " +
                     " where ft.theme_id = :themeId                         ", nativeQuery = true)
     FeedbackTheme findFeedbackThemeByThemeIdAndLocale(@Param("themeId") Integer themeId, @Param("locale") String locale);
