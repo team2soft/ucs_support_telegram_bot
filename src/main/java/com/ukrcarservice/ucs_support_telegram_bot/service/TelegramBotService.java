@@ -159,7 +159,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                             messageUcsNew.setUserIdTo(config.getBotId());
                             messageService.save(messageUcsNew);
 
-                            this.sendMessageToUcsSupportTeam(language, chatId, messageUcs, "message");
+                            this.sendMessageToUcsSupportTeam(language, chatId, messageUcsNew, "message");
                         }
                         if(messageUcs.getFeedbackThemeId() != null) {
                             sendMessage(chatId, EmojiParser.parseToUnicode(feedbackThemeService.getFeedbackThemeByThemeIdAndLocale(messageUcs.getFeedbackThemeId(), language).getTgResponse()));
@@ -222,7 +222,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                 text2.append(replaceMarkdownText(messageUcs.getText(), "HTML"));
                 text2.append("</i></b>");
         }
-        sendMarkdownMessageDisableNotificationToUser(ucsSupportTeamTelegramChatId, text2.toString(), "HTML");
+        this.sendMarkdownMessageDisableNotificationToUser(ucsSupportTeamTelegramChatId, text2.toString(), "HTML");
     }
 
     private String replaceMarkdownText(String income, String markdownType){
@@ -260,7 +260,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
             message.setDisableNotification(true);
             message.setParseMode(markdownType);
 
-            execute(message); // Отправка сообщения пользователю
+            this.execute(message); // Отправка сообщения пользователю
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
